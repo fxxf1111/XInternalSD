@@ -1,0 +1,16 @@
+<resources>
+
+    <string name="app_description">Změnit cestu k interní kartě SD</string>
+    <string name="app_settings">Nastavení</string>
+    <string name="custom_internal_sdcard_path">Vlastní cesta k interní kartě SD</string>
+    <string name="internal_sdcard_path">Cesta k interní kartě SD</string>
+    <string name="enable_for_apps">Povolit pro aplikace</string>
+    <string name="enable_for_all_apps">Povolit pro všechny aplikace</string>
+    <string name="disable_for_apps">Zakázat pro aplikace</string>
+    <string name="enter_internal_sdcard_path">Zadejte cestu k interní kartě SD</string>
+    <string name="external_sdcard_full_access">Plný přístup ke externí kartě SD</string>
+    <string name="include_system_apps">Zahrnout systémové aplikace</string>
+    <string name="reboot_required">Vyžaduje se restart zařízení pro použití nového nastavení.</string>
+    <string name="show_app_icon">Zobrazit ikonu aplikace</string>
+
+</resources>
