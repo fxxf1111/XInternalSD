@@ -258,7 +258,7 @@ public class XInternalSD implements IXposedHookZygoteInit,
         if (internalSd.isEmpty()) {
             return;
         }
-        String packageName = loadPackageParam.processName;
+        String packageName = loadPackageParam.processName.split(":")[0];
         String dir = Common.appendFileSeparator(oldDirPath.getPath());
         String newDir = dir.replaceFirst(internalSd,
                 customInternalSd)+File.separator+packageName;
