@@ -33,7 +33,7 @@ public class XInternalSD implements IXposedHookZygoteInit,
     public XC_MethodHook externalSdCardAccessHook; // 4.4 - 5.0
     public XC_MethodHook externalSdCardAccessHook2; // 6.0 and up
     boolean detectedSdPath = false;
-
+    LoadPackageParam loadPackageParam;
     @Override
     public void initZygote(StartupParam startupParam) throws Throwable {
         prefs = new XSharedPreferences(XInternalSD.class.getPackage().getName());
@@ -156,7 +156,11 @@ public class XInternalSD implements IXposedHookZygoteInit,
     @SuppressWarnings("unchecked")
     @Override
     public void handleLoadPackage(LoadPackageParam lpparam) throws Throwable {
+        if (!isEnabledApp(lpparam)) {
+            return;
+        }
 
+        loadPackageParam = lpparam;
         if ("android".equals(lpparam.packageName)
                 && "android".equals(lpparam.processName)) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -190,32 +194,27 @@ public class XInternalSD implements IXposedHookZygoteInit,
             }
         }
 
-        if (!isEnabledApp(lpparam)) {
-            return;
-
-        }
-
         XposedHelpers.findAndHookMethod(Environment.class,
                 "getExternalStorageDirectory", getExternalStorageDirectoryHook);
-        XposedHelpers.findAndHookMethod(XposedHelpers.findClass(
-                "android.app.ContextImpl", lpparam.classLoader),
-                "getExternalFilesDir", String.class, getExternalFilesDirHook);
-        XposedHelpers.findAndHookMethod(XposedHelpers.findClass(
-                "android.app.ContextImpl", lpparam.classLoader), "getObbDir",
-                getObbDirHook);
-        XposedHelpers.findAndHookMethod(Environment.class,
-                "getExternalStoragePublicDirectory", String.class,
-                getExternalStoragePublicDirectoryHook);
+//        XposedHelpers.findAndHookMethod(XposedHelpers.findClass(
+//                "android.app.ContextImpl", lpparam.classLoader),
+//                "getExternalFilesDir", String.class, getExternalFilesDirHook);
+//        XposedHelpers.findAndHookMethod(XposedHelpers.findClass(
+//                "android.app.ContextImpl", lpparam.classLoader), "getObbDir",
+//                getObbDirHook);
+//        XposedHelpers.findAndHookMethod(Environment.class,
+//                "getExternalStoragePublicDirectory", String.class,
+//                getExternalStoragePublicDirectoryHook);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            XposedHelpers.findAndHookMethod(XposedHelpers.findClass(
-                    "android.app.ContextImpl", lpparam.classLoader),
-                    "getExternalFilesDirs", String.class,
-                    getExternalFilesDirsHook);
-            XposedHelpers.findAndHookMethod(XposedHelpers.findClass(
-                    "android.app.ContextImpl", lpparam.classLoader),
-                    "getObbDirs", getObbDirsHook);
-        }
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+//            XposedHelpers.findAndHookMethod(XposedHelpers.findClass(
+//                    "android.app.ContextImpl", lpparam.classLoader),
+//                    "getExternalFilesDirs", String.class,
+//                    getExternalFilesDirsHook);
+//            XposedHelpers.findAndHookMethod(XposedHelpers.findClass(
+//                    "android.app.ContextImpl", lpparam.classLoader),
+//                    "getObbDirs", getObbDirsHook);
+//        }
     }
 
     public boolean isEnabledApp(LoadPackageParam lpparam) {
@@ -225,26 +224,23 @@ public class XInternalSD implements IXposedHookZygoteInit,
         if (!enabledModule) {
             return false;
         }
-        if (!isAllowedApp(lpparam.appInfo)) {
-            return false;
+        boolean includeSystemApps = prefs.getBoolean("include_system_apps", false);
+        ApplicationInfo applicationInfo = lpparam.appInfo;
+        if(!includeSystemApps){
+            if (applicationInfo == null){
+                return false;
+            }
+
+            if ((applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0){
+                return false;
+            }
         }
-        String packageName = lpparam.packageName;
-        boolean enabledForAllApps = prefs.getBoolean("enable_for_all_apps",
-                false);
-        if (enabledForAllApps) {
-            Set<String> disabledApps = prefs.getStringSet("disable_for_apps",
-                    new HashSet<String>());
-            if (!disabledApps.isEmpty()) {
-                isEnabledApp = !disabledApps.contains(packageName);
-            }
+        String packageName = lpparam.processName.split(":")[0];
+        Set<String> enabledApps = prefs.getStringSet("enable_for_apps", new HashSet<String>());
+        if (!enabledApps.isEmpty()) {
+            isEnabledApp = enabledApps.contains(packageName);
         } else {
-            Set<String> enabledApps = prefs.getStringSet("enable_for_apps",
-                    new HashSet<String>());
-            if (!enabledApps.isEmpty()) {
-                isEnabledApp = enabledApps.contains(packageName);
-            } else {
-                isEnabledApp = !isEnabledApp;
-            }
+            isEnabledApp = !isEnabledApp;
         }
         return isEnabledApp;
     }
@@ -262,10 +258,10 @@ public class XInternalSD implements IXposedHookZygoteInit,
         if (internalSd.isEmpty()) {
             return;
         }
-
+        String packageName = loadPackageParam.processName;
         String dir = Common.appendFileSeparator(oldDirPath.getPath());
         String newDir = dir.replaceFirst(internalSd,
-                customInternalSd);
+                customInternalSd)+File.separator+packageName;
         File newDirPath = new File(newDir);
         if (!newDirPath.exists()) {
             newDirPath.mkdirs();
@@ -321,23 +317,23 @@ public class XInternalSD implements IXposedHookZygoteInit,
         return internalSd;
     }
 
-    public boolean isAllowedApp(ApplicationInfo appInfo) {
-        prefs.reload();
-        boolean includeSystemApps = prefs.getBoolean("include_system_apps",
-                false);
-        if (appInfo == null) {
-            return includeSystemApps;
-        } else {
-            if ((appInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0
-                    && !includeSystemApps) {
-                return false;
-            }
-            if (Arrays.asList(Common.MTP_APPS).contains(appInfo.packageName)) {
-                return false;
-            }
-        }
-        return true;
-    }
+//    public boolean isAllowedApp(ApplicationInfo appInfo) {
+//        prefs.reload();
+//        boolean includeSystemApps = prefs.getBoolean("include_system_apps",
+//                false);
+//        if (appInfo == null) {
+//            return includeSystemApps;
+//        } else {
+//            if ((appInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0
+//                    && !includeSystemApps) {
+//                return false;
+//            }
+//            if (Arrays.asList(Common.MTP_APPS).contains(appInfo.packageName)) {
+//                return false;
+//            }
+//        }
+//        return true;
+//    }
 
     public int[] appendInt(int[] cur, int val) {
         if (cur == null) {

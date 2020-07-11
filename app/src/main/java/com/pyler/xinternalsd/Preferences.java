@@ -182,7 +182,7 @@ public class Preferences extends Activity {
 
         public class LoadApps extends AsyncTask<Void, Void, Void> {
             MultiSelectListPreference enabledApps = (MultiSelectListPreference) findPreference("enable_for_apps");
-            MultiSelectListPreference disabledApps = (MultiSelectListPreference) findPreference("disable_for_apps");
+//            MultiSelectListPreference disabledApps = (MultiSelectListPreference) findPreference("disable_for_apps");
             List<CharSequence> appNames = new ArrayList<>();
             List<CharSequence> packageNames = new ArrayList<>();
             PackageManager pm = context.getPackageManager();
@@ -192,7 +192,7 @@ public class Preferences extends Activity {
             @Override
             protected void onPreExecute() {
                 enabledApps.setEnabled(false);
-                disabledApps.setEnabled(false);
+//                disabledApps.setEnabled(false);
             }
 
             @Override
@@ -233,9 +233,9 @@ public class Preferences extends Activity {
                 enabledApps.setEntries(appNamesList);
                 enabledApps.setEntryValues(packageNamesList);
                 enabledApps.setEnabled(true);
-                disabledApps.setEntries(appNamesList);
-                disabledApps.setEntryValues(packageNamesList);
-                disabledApps.setEnabled(true);
+//                disabledApps.setEntries(appNamesList);
+//                disabledApps.setEntryValues(packageNamesList);
+//                disabledApps.setEnabled(true);
 
                 Preference.OnPreferenceClickListener listener = new Preference.OnPreferenceClickListener() {
                     @Override
@@ -246,7 +246,7 @@ public class Preferences extends Activity {
                 };
 
                 enabledApps.setOnPreferenceClickListener(listener);
-                disabledApps.setOnPreferenceClickListener(listener);
+//                disabledApps.setOnPreferenceClickListener(listener);
             }
         }
 
