@@ -105,13 +105,13 @@ public class XInternalSD implements IXposedHookZygoteInit,
             protected void afterHookedMethod(MethodHookParam param)
                     throws Throwable {
                 Logd("externalSdCardAccessHook afterHookedMethod");
-                prefs.reload();
+//                prefs.reload();
                 String permission = (String) param.args[1];
-                boolean externalSdCardFullAccess = prefs.getBoolean(
-                        "external_sdcard_full_access", true);
-                if (!externalSdCardFullAccess) {
-                    return;
-                }
+//                boolean externalSdCardFullAccess = prefs.getBoolean(
+//                        "external_sdcard_full_access", true);
+//                if (!externalSdCardFullAccess) {
+//                    return;
+//                }
                 if (Common.PERM_WRITE_EXTERNAL_STORAGE
                         .equals(permission)
                         || Common.PERM_ACCESS_ALL_EXTERNAL_STORAGE
@@ -146,12 +146,12 @@ public class XInternalSD implements IXposedHookZygoteInit,
             protected void afterHookedMethod(MethodHookParam param)
                     throws Throwable {
                 Logd("externalSdCardAccessHook2 afterHookedMethod");
-                prefs.reload();
-                boolean externalSdCardFullAccess = prefs.getBoolean(
-                        "external_sdcard_full_access", true);
-                if (!externalSdCardFullAccess) {
-                    return;
-                }
+//                prefs.reload();
+//                boolean externalSdCardFullAccess = prefs.getBoolean(
+//                        "external_sdcard_full_access", true);
+//                if (!externalSdCardFullAccess) {
+//                    return;
+//                }
                 Object extras = XposedHelpers.getObjectField(param.args[0], "mExtras");
                 Object ps = XposedHelpers.callMethod(extras, "getPermissionsState");
                 Object settings = XposedHelpers.getObjectField(param.thisObject, "mSettings");

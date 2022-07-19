@@ -48,7 +48,7 @@ public class Preferences extends Activity {
             addPreferencesFromResource(R.xml.preferences);
             prefs = PreferenceManager.getDefaultSharedPreferences(context);
             PreferenceCategory appSettings = (PreferenceCategory) findPreference("app_settings");
-            Preference externalSdCardFullAccess = findPreference("external_sdcard_full_access");
+//            Preference externalSdCardFullAccess = findPreference("external_sdcard_full_access");
             EditTextPreference internalSdPath = (EditTextPreference) findPreference("internal_sdcard_path");
 //            Preference includeSystemApps = findPreference("include_system_apps");
 
@@ -84,15 +84,15 @@ public class Preferences extends Activity {
 //                            return true;
 //                        }
 //                    });
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                externalSdCardFullAccess.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-                    @Override
-                    public boolean onPreferenceChange(Preference preference, Object newValue) {
-                        Toast.makeText(context, R.string.reboot_required, Toast.LENGTH_LONG).show();
-                        return true;
-                    }
-                });
-            }
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+//                externalSdCardFullAccess.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+//                    @Override
+//                    public boolean onPreferenceChange(Preference preference, Object newValue) {
+//                        Toast.makeText(context, R.string.reboot_required, Toast.LENGTH_LONG).show();
+//                        return true;
+//                    }
+//                });
+//            }
 
 //            reloadAppsList();
 
@@ -129,9 +129,9 @@ public class Preferences extends Activity {
                 }
             }
 
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-                appSettings.removePreference(externalSdCardFullAccess);
-            }
+//            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+//                appSettings.removePreference(externalSdCardFullAccess);
+//            }
 
 //            Preference showAppIcon = findPreference("show_app_icon");
 //            showAppIcon.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
