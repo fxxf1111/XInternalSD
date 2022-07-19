@@ -35,7 +35,7 @@ public class XInternalSD implements IXposedHookZygoteInit,
     public XC_MethodHook externalSdCardAccessHook2; // 6.0 and up
     boolean detectedSdPath = false;
 
-    boolean showLogcat = true;//日志开关
+    boolean showLogcat = false;//日志开关
     public static String TAG = "----lhp---XInternalSD---:";
 
     LoadPackageParam loadPackageParam;
