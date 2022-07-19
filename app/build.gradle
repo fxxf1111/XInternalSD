@@ -15,8 +15,8 @@ android {
         applicationId "com.pyler.xinternalsd"
         minSdkVersion 22
         targetSdkVersion 23
-        versionCode 48
-        versionName "4.8"
+        versionCode 50
+        versionName "5.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
