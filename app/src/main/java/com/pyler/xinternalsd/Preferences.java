@@ -25,7 +25,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-
+//主页面：设置页 通过SharedPreferences保存配置
 public class Preferences extends Activity {
     public static Context context;
     public static SharedPreferences prefs;
@@ -50,7 +50,7 @@ public class Preferences extends Activity {
             PreferenceCategory appSettings = (PreferenceCategory) findPreference("app_settings");
             Preference externalSdCardFullAccess = findPreference("external_sdcard_full_access");
             EditTextPreference internalSdPath = (EditTextPreference) findPreference("internal_sdcard_path");
-            Preference includeSystemApps = findPreference("include_system_apps");
+//            Preference includeSystemApps = findPreference("include_system_apps");
 
             String internalSd = prefs.getString("internal_sdcard_path", "/sdcard/Android/XInternalSDFile");
             if (!internalSd.isEmpty()) {
@@ -75,15 +75,15 @@ public class Preferences extends Activity {
                 }
             });
 
-            includeSystemApps
-                    .setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-                        @Override
-                        public boolean onPreferenceChange(
-                                Preference preference, Object newValue) {
-                            reloadAppsList();
-                            return true;
-                        }
-                    });
+//            includeSystemApps
+//                    .setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+//                        @Override
+//                        public boolean onPreferenceChange(
+//                                Preference preference, Object newValue) {
+//                            reloadAppsList();
+//                            return true;
+//                        }
+//                    });
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                 externalSdCardFullAccess.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                     @Override
@@ -94,7 +94,7 @@ public class Preferences extends Activity {
                 });
             }
 
-            reloadAppsList();
+//            reloadAppsList();
 
             String customInternalSd = prefs.getString("internal_sdcard_path",
                     "");
@@ -133,21 +133,21 @@ public class Preferences extends Activity {
                 appSettings.removePreference(externalSdCardFullAccess);
             }
 
-            Preference showAppIcon = findPreference("show_app_icon");
-            showAppIcon.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-                @Override
-                public boolean onPreferenceChange(
-                        Preference preference, Object newValue) {
-                    PackageManager packageManager = context.getPackageManager();
-                    int state = (boolean) newValue ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
-                            : PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
-                    String settings = BuildConfig.APPLICATION_ID + ".Settings";
-                    ComponentName alias = new ComponentName(context, settings);
-                    packageManager.setComponentEnabledSetting(alias, state,
-                            PackageManager.DONT_KILL_APP);
-                    return true;
-                }
-            });
+//            Preference showAppIcon = findPreference("show_app_icon");
+//            showAppIcon.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+//                @Override
+//                public boolean onPreferenceChange(
+//                        Preference preference, Object newValue) {
+//                    PackageManager packageManager = context.getPackageManager();
+//                    int state = (boolean) newValue ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+//                            : PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+//                    String settings = BuildConfig.APPLICATION_ID + ".Settings";
+//                    ComponentName alias = new ComponentName(context, settings);
+//                    packageManager.setComponentEnabledSetting(alias, state,
+//                            PackageManager.DONT_KILL_APP);
+//                    return true;
+//                }
+//            });
         }
 
         @Override
@@ -162,93 +162,93 @@ public class Preferences extends Activity {
             }
         }
 
-        public void reloadAppsList() {
-            new LoadApps().execute();
-        }
+//        public void reloadAppsList() {
+//            new LoadApps().execute();
+//        }
 
-        public boolean isAllowedApp(ApplicationInfo appInfo) {
-            boolean includeSystemApps = prefs.getBoolean("include_system_apps",
-                    false);
-            if ((appInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0
-                    && !includeSystemApps) {
-                return false;
-            }
-
-            if (Arrays.asList(Common.MTP_APPS).contains(appInfo.packageName)) {
-                return false;
-            }
-            return true;
-        }
-
-        public class LoadApps extends AsyncTask<Void, Void, Void> {
-            MultiSelectListPreference enabledApps = (MultiSelectListPreference) findPreference("enable_for_apps");
-//            MultiSelectListPreference disabledApps = (MultiSelectListPreference) findPreference("disable_for_apps");
-            List<CharSequence> appNames = new ArrayList<>();
-            List<CharSequence> packageNames = new ArrayList<>();
-            PackageManager pm = context.getPackageManager();
-            List<ApplicationInfo> packages = pm
-                    .getInstalledApplications(PackageManager.GET_META_DATA);
-
-            @Override
-            protected void onPreExecute() {
-                enabledApps.setEnabled(false);
-//                disabledApps.setEnabled(false);
-            }
-
-            @Override
-            protected Void doInBackground(Void... arg0) {
-                List<String[]> sortedApps = new ArrayList<>();
-
-                for (ApplicationInfo app : packages) {
-                    if (isAllowedApp(app)) {
-                        sortedApps.add(new String[]{
-                                app.packageName,
-                                app.loadLabel(pm)
-                                        .toString()});
-                    }
-                }
-
-                Collections.sort(sortedApps, new Comparator<String[]>() {
-                    @Override
-                    public int compare(String[] entry1, String[] entry2) {
-                        return entry1[1].compareToIgnoreCase(entry2[1]);
-                    }
-                });
-
-                for (int i = 0; i < sortedApps.size(); i++) {
-                    appNames.add(sortedApps.get(i)[1] + "\n" + "(" + sortedApps.get(i)[0] + ")");
-                    packageNames.add(sortedApps.get(i)[0]);
-                }
-
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Void result) {
-                CharSequence[] appNamesList = appNames
-                        .toArray(new CharSequence[appNames.size()]);
-                CharSequence[] packageNamesList = packageNames
-                        .toArray(new CharSequence[packageNames.size()]);
-
-                enabledApps.setEntries(appNamesList);
-                enabledApps.setEntryValues(packageNamesList);
-                enabledApps.setEnabled(true);
-//                disabledApps.setEntries(appNamesList);
-//                disabledApps.setEntryValues(packageNamesList);
-//                disabledApps.setEnabled(true);
-
-                Preference.OnPreferenceClickListener listener = new Preference.OnPreferenceClickListener() {
-                    @Override
-                    public boolean onPreferenceClick(Preference preference) {
-                        ((MultiSelectListPreference) preference).getDialog().getWindow().setLayout(WindowManager.LayoutParams.FILL_PARENT, WindowManager.LayoutParams.FILL_PARENT);
-                        return false;
-                    }
-                };
-
-                enabledApps.setOnPreferenceClickListener(listener);
-//                disabledApps.setOnPreferenceClickListener(listener);
-            }
-        }
+//        public boolean isAllowedApp(ApplicationInfo appInfo) {
+//            boolean includeSystemApps = prefs.getBoolean("include_system_apps",
+//                    false);
+//            if ((appInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0
+//                    && !includeSystemApps) {
+//                return false;
+//            }
+//
+//            if (Arrays.asList(Common.MTP_APPS).contains(appInfo.packageName)) {
+//                return false;
+//            }
+//            return true;
+//        }
+//
+//        public class LoadApps extends AsyncTask<Void, Void, Void> {
+////            MultiSelectListPreference enabledApps = (MultiSelectListPreference) findPreference("enable_for_apps");
+////            MultiSelectListPreference disabledApps = (MultiSelectListPreference) findPreference("disable_for_apps");
+//            List<CharSequence> appNames = new ArrayList<>();
+//            List<CharSequence> packageNames = new ArrayList<>();
+//            PackageManager pm = context.getPackageManager();
+//            List<ApplicationInfo> packages = pm
+//                    .getInstalledApplications(PackageManager.GET_META_DATA);
+//
+//            @Override
+//            protected void onPreExecute() {
+//                enabledApps.setEnabled(false);
+////                disabledApps.setEnabled(false);
+//            }
+//
+//            @Override
+//            protected Void doInBackground(Void... arg0) {
+//                List<String[]> sortedApps = new ArrayList<>();
+//
+//                for (ApplicationInfo app : packages) {
+//                    if (isAllowedApp(app)) {
+//                        sortedApps.add(new String[]{
+//                                app.packageName,
+//                                app.loadLabel(pm)
+//                                        .toString()});
+//                    }
+//                }
+//
+//                Collections.sort(sortedApps, new Comparator<String[]>() {
+//                    @Override
+//                    public int compare(String[] entry1, String[] entry2) {
+//                        return entry1[1].compareToIgnoreCase(entry2[1]);
+//                    }
+//                });
+//
+//                for (int i = 0; i < sortedApps.size(); i++) {
+//                    appNames.add(sortedApps.get(i)[1] + "\n" + "(" + sortedApps.get(i)[0] + ")");
+//                    packageNames.add(sortedApps.get(i)[0]);
+//                }
+//
+//                return null;
+//            }
+//
+//            @Override
+//            protected void onPostExecute(Void result) {
+//                CharSequence[] appNamesList = appNames
+//                        .toArray(new CharSequence[appNames.size()]);
+//                CharSequence[] packageNamesList = packageNames
+//                        .toArray(new CharSequence[packageNames.size()]);
+//
+//                enabledApps.setEntries(appNamesList);
+//                enabledApps.setEntryValues(packageNamesList);
+//                enabledApps.setEnabled(true);
+////                disabledApps.setEntries(appNamesList);
+////                disabledApps.setEntryValues(packageNamesList);
+////                disabledApps.setEnabled(true);
+//
+//                Preference.OnPreferenceClickListener listener = new Preference.OnPreferenceClickListener() {
+//                    @Override
+//                    public boolean onPreferenceClick(Preference preference) {
+//                        ((MultiSelectListPreference) preference).getDialog().getWindow().setLayout(WindowManager.LayoutParams.FILL_PARENT, WindowManager.LayoutParams.FILL_PARENT);
+//                        return false;
+//                    }
+//                };
+//
+//                enabledApps.setOnPreferenceClickListener(listener);
+////                disabledApps.setOnPreferenceClickListener(listener);
+//            }
+//        }
 
     }
 }

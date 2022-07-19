@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <PreferenceCategory
         android:key="app_settings"
@@ -19,26 +20,32 @@
 <!--            android:key="enable_for_all_apps"-->
 <!--            android:title="@string/enable_for_all_apps" />-->
 
-        <MultiSelectListPreference
-            android:key="enable_for_apps"
-            android:title="@string/enable_for_apps" />
+<!--        <MultiSelectListPreference-->
+<!--            android:key="enable_for_apps"-->
+
+<!--            android:shouldDisableView="false"-->
+<!--            android:title="@string/enable_for_apps"-->
+<!--            android:visibility="gone" />-->
+
+
 <!--        <MultiSelectListPreference-->
 <!--            android:key="disable_for_apps"-->
 <!--            android:title="@string/disable_for_apps" />-->
 
-        <CheckBoxPreference
-            android:defaultValue="false"
-            android:key="include_system_apps"
-            android:title="@string/include_system_apps" />
+<!--        <CheckBoxPreference-->
+<!--            android:defaultValue="false"-->
+<!--            android:key="include_system_apps"-->
+<!--            android:title="@string/include_system_apps"-->
+<!--            android:visibility="gone" />-->
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="external_sdcard_full_access"
             android:title="@string/external_sdcard_full_access" />
 
-        <CheckBoxPreference
-            android:defaultValue="true"
-            android:key="show_app_icon"
-            android:title="@string/show_app_icon" />
+<!--        <CheckBoxPreference-->
+<!--            android:defaultValue="true"-->
+<!--            android:key="show_app_icon"-->
+<!--            android:title="@string/show_app_icon" />-->
     </PreferenceCategory>
 
 </PreferenceScreen>

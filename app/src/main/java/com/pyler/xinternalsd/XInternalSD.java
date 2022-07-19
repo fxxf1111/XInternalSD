@@ -3,6 +3,7 @@ package com.pyler.xinternalsd;
 import android.content.pm.ApplicationInfo;
 import android.os.Build;
 import android.os.Environment;
+import android.util.Log;
 
 import org.xmlpull.v1.XmlPullParser;
 
@@ -33,9 +34,14 @@ public class XInternalSD implements IXposedHookZygoteInit,
     public XC_MethodHook externalSdCardAccessHook; // 4.4 - 5.0
     public XC_MethodHook externalSdCardAccessHook2; // 6.0 and up
     boolean detectedSdPath = false;
+
+    boolean showLogcat = true;//日志开关
+    public static String TAG = "----lhp---XInternalSD---:";
+
     LoadPackageParam loadPackageParam;
     @Override
     public void initZygote(StartupParam startupParam) throws Throwable {
+        Logd("initZygote");
         prefs = new XSharedPreferences(XInternalSD.class.getPackage().getName());
         prefs.makeWorldReadable();
 
@@ -43,6 +49,7 @@ public class XInternalSD implements IXposedHookZygoteInit,
             @Override
             protected void afterHookedMethod(MethodHookParam param)
                     throws Throwable {
+                Logd("getExternalStorageDirectoryHook afterHookedMethod");
                 changeDirPath(param);
             }
         };
@@ -51,6 +58,7 @@ public class XInternalSD implements IXposedHookZygoteInit,
             @Override
             protected void afterHookedMethod(MethodHookParam param)
                     throws Throwable {
+                Logd("getExternalFilesDirHook afterHookedMethod");
                 changeDirPath(param);
 
             }
@@ -60,6 +68,7 @@ public class XInternalSD implements IXposedHookZygoteInit,
             @Override
             protected void afterHookedMethod(MethodHookParam param)
                     throws Throwable {
+                Logd("getObbDirHook afterHookedMethod");
                 changeDirPath(param);
             }
         };
@@ -68,6 +77,7 @@ public class XInternalSD implements IXposedHookZygoteInit,
             @Override
             protected void afterHookedMethod(MethodHookParam param)
                     throws Throwable {
+                Logd("getExternalStoragePublicDirectoryHook afterHookedMethod");
                 changeDirPath(param);
             }
         };
@@ -76,6 +86,7 @@ public class XInternalSD implements IXposedHookZygoteInit,
             @Override
             protected void afterHookedMethod(MethodHookParam param)
                     throws Throwable {
+                Logd("getExternalFilesDirsHook afterHookedMethod");
                 changeDirsPath(param);
             }
         };
@@ -84,6 +95,7 @@ public class XInternalSD implements IXposedHookZygoteInit,
             @Override
             protected void afterHookedMethod(MethodHookParam param)
                     throws Throwable {
+                Logd("getObbDirsHook afterHookedMethod");
                 changeDirsPath(param);
             }
         };
@@ -92,6 +104,7 @@ public class XInternalSD implements IXposedHookZygoteInit,
             @Override
             protected void afterHookedMethod(MethodHookParam param)
                     throws Throwable {
+                Logd("externalSdCardAccessHook afterHookedMethod");
                 prefs.reload();
                 String permission = (String) param.args[1];
                 boolean externalSdCardFullAccess = prefs.getBoolean(
@@ -132,6 +145,7 @@ public class XInternalSD implements IXposedHookZygoteInit,
             @Override
             protected void afterHookedMethod(MethodHookParam param)
                     throws Throwable {
+                Logd("externalSdCardAccessHook2 afterHookedMethod");
                 prefs.reload();
                 boolean externalSdCardFullAccess = prefs.getBoolean(
                         "external_sdcard_full_access", true);
@@ -152,15 +166,29 @@ public class XInternalSD implements IXposedHookZygoteInit,
             }
         };
     }
-
+    //app打开传入包名，判断是否要hook
     @SuppressWarnings("unchecked")
     @Override
     public void handleLoadPackage(LoadPackageParam lpparam) throws Throwable {
-        if (!isEnabledApp(lpparam)) {
-            return;
-        }
+        Logd("-----handleLoadPackage-----");
+        Logd("packageName=" + lpparam.packageName);
+        Logd("processName=" + lpparam.processName);
+        Logd("classLoader=" + lpparam.classLoader);
+        Logd("appInfo packageName=" + lpparam.appInfo.packageName);
+        Logd("appInfo className=" + lpparam.appInfo.className);
+        Logd("appInfo processName=" + lpparam.appInfo.processName);
+        Logd("appInfo flags=" + lpparam.appInfo.flags);
+        Logd("appInfo dataDir=" + lpparam.appInfo.dataDir);
 
+        //使用LSPosed无需本app维护开启名单，只需在LSPosed中勾选需启用app即可
+        //根据包名判断是否要hook
+//        if (!isEnabledApp(lpparam)) {
+//            Logd("isEnabledApp = false");
+//            return;
+//        }
+//        Logd("isEnabledApp = true");
         loadPackageParam = lpparam;
+        //以android开头的包名  && 执行包的进程是android
         if ("android".equals(lpparam.packageName)
                 && "android".equals(lpparam.processName)) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -216,41 +244,52 @@ public class XInternalSD implements IXposedHookZygoteInit,
 //                    "getObbDirs", getObbDirsHook);
 //        }
     }
-
-    public boolean isEnabledApp(LoadPackageParam lpparam) {
-        boolean isEnabledApp = true;
-        prefs.reload();
-        boolean enabledModule = prefs.getBoolean("custom_internal_sd", true);
-        if (!enabledModule) {
-            return false;
-        }
-        boolean includeSystemApps = prefs.getBoolean("include_system_apps", false);
-        ApplicationInfo applicationInfo = lpparam.appInfo;
-        if(!includeSystemApps){
-            if (applicationInfo == null){
-                return false;
-            }
-
-            if ((applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0){
-                return false;
-            }
-        }
-        String packageName = lpparam.processName.split(":")[0];
-        Set<String> enabledApps = prefs.getStringSet("enable_for_apps", new HashSet<String>());
-        if (!enabledApps.isEmpty()) {
-            isEnabledApp = enabledApps.contains(packageName);
-        } else {
-            isEnabledApp = !isEnabledApp;
-        }
-        return isEnabledApp;
-    }
+    //判断app是否要hook
+//    public boolean isEnabledApp(LoadPackageParam lpparam) {
+//        Logd("-----isEnabledApp-----");
+//        boolean isEnabledApp = true;
+//        prefs.reload();
+//        //模块开关是否打开
+//        boolean enabledModule = prefs.getBoolean("custom_internal_sd", true);
+//        if (!enabledModule) {
+//            return false;
+//        }
+//        //是否hook系统app
+//        boolean includeSystemApps = prefs.getBoolean("include_system_apps", false);
+//        ApplicationInfo applicationInfo = lpparam.appInfo;
+//
+//        //如果不hook系统app
+//        if(!includeSystemApps){
+//            if (applicationInfo == null){
+//                return false;
+//            }
+//
+//            //&逻辑与 两个操作数都是true，结果才是true；**两边都运算**
+//            if ((applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0){
+//                //传入的app是系统app，不hook
+//                return false;
+//            }
+//        }
+//        //判断传入app是否在配置表中
+//        String packageName = lpparam.processName.split(":")[0];
+//        Set<String> enabledApps = prefs.getStringSet("enable_for_apps", new HashSet<String>());
+//        if (!enabledApps.isEmpty()) {
+//            isEnabledApp = enabledApps.contains(packageName);
+//        } else {
+//            isEnabledApp = !isEnabledApp;
+//        }
+//        return isEnabledApp;
+//    }
 
     public void changeDirPath(MethodHookParam param) {
+
         File oldDirPath = (File) param.getResult();
+        Logd("-----changeDirPath-----oldDirPath="+oldDirPath);
         if (oldDirPath == null) {
             return;
         }
         String customInternalSd = getCustomInternalSd();
+        Logd("-----changeDirPath-----newDirPath="+customInternalSd);
         if (customInternalSd.isEmpty()) {
             return;
         }
@@ -270,6 +309,7 @@ public class XInternalSD implements IXposedHookZygoteInit,
     }
 
     public void changeDirsPath(MethodHookParam param) {
+        Logd("-----changeDirsPath-----"+param.toString());
         File[] oldDirPaths = (File[]) param.getResult();
         ArrayList<File> newDirPaths = new ArrayList<File>();
         for (File oldDirPath : oldDirPaths) {
@@ -303,17 +343,19 @@ public class XInternalSD implements IXposedHookZygoteInit,
                 .size()]);
         param.setResult(appendedDirPaths);
     }
-
+    //自定义路径
     public String getCustomInternalSd() {
         prefs.reload();
         String customInternalSd = prefs.getString("internal_sdcard_path",
                 getInternalSd());
         customInternalSd = Common.appendFileSeparator(customInternalSd);
+        Logd("-----changeDirsPath-----customInternalSd="+customInternalSd);
         return customInternalSd;
     }
 
     public String getInternalSd() {
         internalSd = Common.appendFileSeparator(internalSd);
+        Logd("-----getInternalSd-----internalSd="+internalSd);
         return internalSd;
     }
 
@@ -336,6 +378,7 @@ public class XInternalSD implements IXposedHookZygoteInit,
 //    }
 
     public int[] appendInt(int[] cur, int val) {
+        Logd("-----appendInt-----=");
         if (cur == null) {
             return new int[]{val};
         }
@@ -349,5 +392,12 @@ public class XInternalSD implements IXposedHookZygoteInit,
         System.arraycopy(cur, 0, ret, 0, N);
         ret[N] = val;
         return ret;
+    }
+
+    //打印log
+    private void Logd(String log){
+        if (showLogcat){
+            Log.d(TAG,log);
+        }
     }
 }

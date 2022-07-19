@@ -13,7 +13,8 @@ public class Common {
 
     private Common() {
     }
-
+    
+    //路径+/
     public static String appendFileSeparator(String path) {
         if (!path.endsWith(File.separator)) {
             path += File.separator;
